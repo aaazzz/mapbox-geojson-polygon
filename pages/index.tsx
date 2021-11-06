@@ -17,7 +17,7 @@ const Home: NextPage = () => {
         <div className="map-wrapper">
           <MapboxMap
             // initialOptions={{ center: [106.6770417, 10.8001182], zoom: 15 }}
-            initialOptions={{ center: [136.1528, 35.2103], zoom: 15 }}
+            initialOptions={{ center: [136.1528, 35.2103], zoom: 8.8 }}
             onMapLoaded={handleMapLoading}
           />
         </div>

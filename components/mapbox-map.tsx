@@ -1,7 +1,6 @@
 import * as React from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import shiga from './shiga.geojson'
 
 interface MapboxMapProps {
   initialOptions?: Omit<mapboxgl.MapboxOptions, 'container'>
@@ -53,64 +52,36 @@ const MapboxMap = ({
   React.useEffect(() => {
     if (!map) return
     map.on('load', () => {
+      
       setCurrentLocation(map)
       map.addSource('shiga-geojson', {
         type: 'geojson',
-        data: shiga
+        data: 'geojson/shiga.geojson'
       })
-      map.addLayer({
-        'id': 'shiga-geojson-polygon',
-        'type': 'fill',
-        'source': 'shiga-geojson',
-        'paint': {
-          'fill-color': '#172639',
-          'fill-opacity': 0.5
-        }
-      })
-      map.addLayer({
-        'id': 'shiga-geojson-line',
-        'type': 'line',
-        'source': 'shiga-geojson',
-        'layout': {
-          'line-join': 'round',
-        },
-        'paint': {
-          'line-width': 2,
-          'line-color': '#36649F'
-        }
-      })
-      ///
-      map.addSource('kyoto-geojson', {
-        type: 'geojson',
-        data: 'geojson/kyoto.geojson'
-      })
-      map.addLayer({
-        'id': 'kyoto-geojson-polygon',
-        'type': 'fill',
-        'source': 'kyoto-geojson',
-        'paint': {
-          'fill-color': '#223539',
-          'fill-opacity': 0.5
-        }
-      })
-      map.addLayer({
-        'id': 'kyoto-geojson-line',
-        'type': 'line',
-        'source': 'kyoto-geojson',
-        'layout': {
-          'line-join': 'round',
-        },
-        'paint': {
-          'line-width': 2,
-          'line-color': '#36649F'
-        }
-      })
+      addLayerWithRandomColor(map)
     })
     map.on('move', () => {
       setCurrentLocation(map)
     })
   })
 
+  const addLayerWithRandomColor = (map: mapboxgl.Map) => {
+    // TODO: can you get city codes dynamically?
+    const cities = ["25201", "25202", "25203", "25204", "25206", "25207", "25208", "25209", "25210", "25211", "25212", "25213", "25214", "25383", "25384", "25425", "25441", "25442", "25443"]
+    cities.map(c => {
+      map.addLayer({
+        'id': `shiga-geojson-polygon-${c}`,
+        'type': 'fill',
+        'source': 'shiga-geojson',
+        'paint': {
+          'fill-color': '#' + Math.random().toString(16).substr(2,6),
+          'fill-opacity': 0.7 
+        },
+        // N03_007: city code
+        filter: ['==', 'N03_007', c]
+      })
+    })
+  }
   return (
     <>
       <div className="sidebar">
