@@ -1,6 +1,7 @@
 import * as React from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import shiga from './shiga.geojson'
 
 interface MapboxMapProps {
   initialOptions?: Omit<mapboxgl.MapboxOptions, 'container'>
@@ -53,6 +54,57 @@ const MapboxMap = ({
     if (!map) return
     map.on('load', () => {
       setCurrentLocation(map)
+      map.addSource('shiga-geojson', {
+        type: 'geojson',
+        data: shiga
+      })
+      map.addLayer({
+        'id': 'shiga-geojson-polygon',
+        'type': 'fill',
+        'source': 'shiga-geojson',
+        'paint': {
+          'fill-color': '#172639',
+          'fill-opacity': 0.5
+        }
+      })
+      map.addLayer({
+        'id': 'shiga-geojson-line',
+        'type': 'line',
+        'source': 'shiga-geojson',
+        'layout': {
+          'line-join': 'round',
+        },
+        'paint': {
+          'line-width': 2,
+          'line-color': '#36649F'
+        }
+      })
+      ///
+      map.addSource('kyoto-geojson', {
+        type: 'geojson',
+        data: 'geojson/kyoto.geojson'
+      })
+      map.addLayer({
+        'id': 'kyoto-geojson-polygon',
+        'type': 'fill',
+        'source': 'kyoto-geojson',
+        'paint': {
+          'fill-color': '#223539',
+          'fill-opacity': 0.5
+        }
+      })
+      map.addLayer({
+        'id': 'kyoto-geojson-line',
+        'type': 'line',
+        'source': 'kyoto-geojson',
+        'layout': {
+          'line-join': 'round',
+        },
+        'paint': {
+          'line-width': 2,
+          'line-color': '#36649F'
+        }
+      })
     })
     map.on('move', () => {
       setCurrentLocation(map)

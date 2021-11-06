@@ -16,6 +16,10 @@ const useMapCenter = (map?: mapboxgl.Map) => {
 
     map.on('load', () => {
       setMapCenter(map)
+      map.addSource('some id', {
+        type: 'geojson',
+        data: 'https://mydomain.mydata.geojson'
+      });
     })
     map.on('move', () => {
       setMapCenter(map)
