@@ -1,6 +1,8 @@
 import * as React from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import { Feature, FeatureCollection } from 'geojson'
+import ColorScale from 'color-scales'
 import shiga from './geojson/shiga.geojson'
 import kyoto from './geojson/kyoto.geojson'
 
@@ -61,29 +63,63 @@ const MapboxMap = ({
         data: kyoto
       })
       addLayerWithRandomColor(map)
+      map.addLayer({
+        'id': `geojson-line`,
+        'type': 'line',
+        'source': 'geojson',
+        'layout': {
+          'line-join': 'round'
+        },
+        'paint': {
+          'line-color': '#000',
+          'line-opacity': 0.2
+        }
+      })
     })
     map.on('move', () => {
       setCurrentLocation(map)
     })
   })
 
+  // Reduce duplicated geometry because there may be multiple elements for the same city
+  const sanitizeGeomety = (cities: FeatureCollection): FeatureCollection => {
+    const reducer = (resultArray: Array<any>, element: any) => {
+      const index = resultArray.findIndex(x => x.properties['N03_007'] === element.properties['N03_007'] )
+      if (index < 0) {
+        resultArray.push(element)
+      } else {
+        resultArray[index].geometry.coordinates.concat(element.geometry.coordinates)
+      }
+      return resultArray
+    }
+    cities.features = cities.features.reduce(reducer, [])
+    return cities
+  }
+
   const addLayerWithRandomColor = (map: mapboxgl.Map) => {
-    const cities: Array<String> = kyoto.features.map((f: GeoJSON.Feature) => {
+    const cities: Array<String> = sanitizeGeomety(kyoto).features.map((f: Feature) => {
       if (!f.properties) return null 
       // N03_007: city code
       return f.properties['N03_007']
     })
 
+    const colorScale = new ColorScale(0, cities.length, ["#ff0000", "#0000ff"], 1);
     cities.map((c, idx) => {
+      console.log(`geojson-polygon-${c}-${idx}`)
       map.addLayer({
         'id': `geojson-polygon-${c}-${idx}`,
         'type': 'fill',
         'source': 'geojson',
         'paint': {
-          'fill-color': '#' + Math.random().toString(16).substr(2,6),
+          'fill-color': colorScale.getColor(idx).toHexString(),
           'fill-opacity': 0.7 
         },
-        filter: ['==', 'N03_007', c]
+        'filter': ['==', 'N03_007', c]
+      })
+      // listen mouse event
+      map.on('mouseenter', `geojson-polygon-${c}-${idx}`, (e) => {
+        if (!e.features) return
+        console.log(e.features[0].properties)
       })
     })
   }
