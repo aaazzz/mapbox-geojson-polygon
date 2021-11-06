@@ -1,5 +1,9 @@
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+# Visualize geojson with mapbox
+![image](https://user-images.githubusercontent.com/3435052/140600036-8d13e83b-cd44-4d3c-bc63-93cceb137043.png)
+
+
 ## Getting Started
 
 First, run the development server:
