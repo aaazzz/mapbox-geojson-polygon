@@ -1,6 +1,7 @@
-import * as React from 'react'
 import mapboxgl from 'mapbox-gl'
-import 'mapbox-gl/dist/mapbox-gl.css'
+import { useEffect, useRef } from 'react'
+import { useMapbox } from '../hooks/useMapbox'
+import { useMapCenter } from '../hooks/useMapCenter'
 import { Feature, FeatureCollection } from 'geojson'
 import ColorScale from 'color-scales'
 import kyoto from './geojson/kyoto.geojson'
@@ -16,47 +17,13 @@ const MapboxMap = ({
   onMapLoaded,
   onMapRemoved,
 }: MapboxMapProps) => {
-  const [map, setMap] = React.useState<mapboxgl.Map>()
-  const mapNode = React.useRef(null)
+  const mapNode = useRef(null)
+  const { map } = useMapbox({ initialOptions, onMapLoaded, onMapRemoved }, mapNode)
+  const { lng, lat, zoom } = useMapCenter(map)
 
-  const [lng, setLng] = React.useState('')
-  const [lat, setLat] = React.useState('')
-  const [zoom, setZoom] = React.useState('')
-
-  const setCurrentLocation = (map: mapboxgl.Map) => {
-    setLng(map.getCenter().lng.toFixed(4))
-    setLat(map.getCenter().lat.toFixed(4))
-    setZoom(map.getZoom().toFixed(1))
-  }
-
-  React.useEffect(() => {
-    const node = mapNode.current
-
-    if (typeof window === 'undefined' || node === null) return
-
-    const mapboxMap = new mapboxgl.Map({
-      container: node,
-      accessToken: process.env.NEXT_PUBLIC_MAPBOX_TOKEN,
-      style: 'mapbox://styles/mapbox/streets-v11',
-      zoom: 9,
-      ...initialOptions,
-    })
-
-    setMap(mapboxMap)
-
-    if (onMapLoaded) mapboxMap.once('load', onMapLoaded)
-
-    return () => {
-      mapboxMap.remove()
-      if (onMapRemoved) onMapRemoved()
-    }
-  }, [])
-
-  React.useEffect(() => {
+  useEffect(() => {
     if (!map) return
     map.on('load', () => {
-      
-      setCurrentLocation(map)
       map.addSource('geojson', {
         type: 'geojson',
         data: kyoto
@@ -75,12 +42,10 @@ const MapboxMap = ({
         }
       })
     })
-    map.on('move', () => {
-      setCurrentLocation(map)
-    })
-  })
+  }, [map])
 
   // Reduce duplicated geometry because there may be multiple elements for the same city
+  // N03_007: city code
   const sanitizeGeomety = (cities: FeatureCollection): FeatureCollection => {
     const reducer = (resultArray: Array<any>, element: any) => {
       const index = resultArray.findIndex(x => x.properties['N03_007'] === element.properties['N03_007'] )
@@ -98,13 +63,11 @@ const MapboxMap = ({
   const addLayerWithRandomColor = (map: mapboxgl.Map) => {
     const cities: Array<String> = sanitizeGeomety(kyoto).features.map((f: Feature) => {
       if (!f.properties) return null 
-      // N03_007: city code
       return f.properties['N03_007']
     })
 
     const colorScale = new ColorScale(0, cities.length, ["#ff0000", "#0000ff"], 1);
     cities.map((c, idx) => {
-      console.log(`geojson-polygon-${c}-${idx}`)
       map.addLayer({
         'id': `geojson-polygon-${c}-${idx}`,
         'type': 'fill',
@@ -122,6 +85,7 @@ const MapboxMap = ({
       })
     })
   }
+
   return (
     <>
       <div className="sidebar">

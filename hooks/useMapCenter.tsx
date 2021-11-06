@@ -13,20 +13,17 @@ const useMapCenter = (map?: mapboxgl.Map) => {
 
   useEffect(() => {
     if (!map) return
-
-    map.on('load', () => {
-      setMapCenter(map)
-      map.addSource('some id', {
-        type: 'geojson',
-        data: 'https://mydomain.mydata.geojson'
-      });
-    })
     map.on('move', () => {
       setMapCenter(map)
     })
-  })
+    map.on('load', () => {
+      setMapCenter(map)
+    })
+  }, [map])
 
   return { lng, lat, zoom }
 }
 
-export default useMapCenter
+export {
+  useMapCenter
+}
