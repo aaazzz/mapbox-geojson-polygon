@@ -1,6 +1,8 @@
 import * as React from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import shiga from './geojson/shiga.geojson'
+import kyoto from './geojson/kyoto.geojson'
 
 interface MapboxMapProps {
   initialOptions?: Omit<mapboxgl.MapboxOptions, 'container'>
@@ -54,9 +56,9 @@ const MapboxMap = ({
     map.on('load', () => {
       
       setCurrentLocation(map)
-      map.addSource('shiga-geojson', {
+      map.addSource('geojson', {
         type: 'geojson',
-        data: 'geojson/shiga.geojson'
+        data: kyoto
       })
       addLayerWithRandomColor(map)
     })
@@ -66,18 +68,21 @@ const MapboxMap = ({
   })
 
   const addLayerWithRandomColor = (map: mapboxgl.Map) => {
-    // TODO: can you get city codes dynamically?
-    const cities = ["25201", "25202", "25203", "25204", "25206", "25207", "25208", "25209", "25210", "25211", "25212", "25213", "25214", "25383", "25384", "25425", "25441", "25442", "25443"]
-    cities.map(c => {
+    const cities: Array<String> = kyoto.features.map((f: GeoJSON.Feature) => {
+      if (!f.properties) return null 
+      // N03_007: city code
+      return f.properties['N03_007']
+    })
+
+    cities.map((c, idx) => {
       map.addLayer({
-        'id': `shiga-geojson-polygon-${c}`,
+        'id': `geojson-polygon-${c}-${idx}`,
         'type': 'fill',
-        'source': 'shiga-geojson',
+        'source': 'geojson',
         'paint': {
           'fill-color': '#' + Math.random().toString(16).substr(2,6),
           'fill-opacity': 0.7 
         },
-        // N03_007: city code
         filter: ['==', 'N03_007', c]
       })
     })
