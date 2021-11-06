@@ -3,7 +3,6 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { Feature, FeatureCollection } from 'geojson'
 import ColorScale from 'color-scales'
-import shiga from './geojson/shiga.geojson'
 import kyoto from './geojson/kyoto.geojson'
 
 interface MapboxMapProps {
